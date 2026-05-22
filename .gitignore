@@ -1,13 +1,47 @@
-# Python-generated files
+# Byte-compiled / optimized files
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
 
 # Virtual environments
-.venv
+.venv/
+venv/
+env/
 
-# Documentation
+# Test / coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Type checker / linter caches
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# Notebook / interactive
+.ipynb_checkpoints/
+
+# IDE / editor settings
+.idea/
+.vscode/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Logs / local env files
+*.log
+.env
+.env.*
+
+# Local docs/artifacts not needed in source control
 *.pdf

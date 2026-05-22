@@ -1,7 +1,26 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
 [project]
-name = "lightbox"
+name = "pydcscontrol"
 version = "0.1.0"
-description = "Add your description here"
+description = "Network client for Advanced Illumination DCS light controllers"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.10"
 dependencies = []
+
+[dependency-groups]
+dev = [
+	"pytest>=8.4.0",
+]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pydcscontrol"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
