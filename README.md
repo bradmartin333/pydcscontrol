@@ -20,7 +20,7 @@ uv add pydcscontrol
 pip install pydcscontrol
 ```
 
-## Quick Start
+## Usage
 
 ```python
 from pydcscontrol import DCSController, Mode, TriggerEdge
@@ -35,25 +35,6 @@ controller.set_trigger_edge(1, TriggerEdge.RISING)
 devices = DCSController.discover(timeout_seconds=0.75)
 for device in devices:
     print(device.host, device.idn)
-```
-
-## Integrating Into Existing Projects
-
-1. Wrap controller calls in an app-level service so protocol details are isolated.
-2. Keep host/port/timeout values in configuration.
-3. Unit test your service by mocking `DCSController.command` rather than requiring live hardware.
-
-```python
-from pydcscontrol import DCSController, Mode
-
-
-class LightingService:
-    def __init__(self, host: str, tcp_port: int = 777) -> None:
-        self._controller = DCSController(host, tcp_port=tcp_port)
-
-    def arm_inspection(self) -> None:
-        self._controller.set_mode(1, Mode.CONTINUOUS)
-        self._controller.set_level(1, 400)
 ```
 
 ## Development
