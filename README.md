@@ -43,6 +43,8 @@ for device in devices:
 uv sync
 uv run pytest
 uv build
+git tag -a vX.Y.Z -m vX.Y.Z
+git push --tags
 ```
 
 ## Notes
