@@ -1,4 +1,4 @@
-## pydcscontrol
+## pydcscontrol ![PyPI - Version](https://img.shields.io/pypi/v/pydcscontrol)
 
 Python client library for communicating with Advanced Illumination DCS light controllers over the Ethernet interface.
 
