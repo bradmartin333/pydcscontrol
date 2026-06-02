@@ -47,6 +47,15 @@ git tag -a vX.Y.Z -m vX.Y.Z
 git push --tags
 ```
 
+If a deployment fails
+
+```bash
+git tag -d vX.Y.Z
+git push origin :refs/tags/vX.Y.Z
+git tag -a vX.Y.Z -m vX.Y.Z
+git push --tags
+```
+
 ## Notes
 
 - Commands are automatically semicolon-terminated if omitted.
