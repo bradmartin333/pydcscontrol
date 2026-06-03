@@ -1,10 +1,22 @@
 from __future__ import annotations
 
 import socket
+import warnings
 
-from .exceptions import DCSNetworkError, DCSProtocolError
-from .models import DeviceInfo, Mode, ProfileName, TriggerEdge
-from .protocol import ensure_terminated, parse_profile_names, validate_channel, validate_profile
+from .exceptions import (
+    DCSControllerWarning,
+    DCSNetworkError,
+    DCSProtocolError,
+    DCSSignalWarning,
+)
+from .models import Mode, ProfileName, TriggerEdge
+from .protocol import (
+    ensure_terminated,
+    parse_channel_configs,
+    parse_profile_names,
+    validate_channel,
+    validate_profile,
+)
 
 
 class DCSController:
@@ -12,7 +24,7 @@ class DCSController:
 
     def __init__(
         self,
-        host: str,
+        host: str = "192.168.0.1",
         *,
         tcp_port: int = 777,
         udp_port: int = 7777,
@@ -28,12 +40,16 @@ class DCSController:
         payload = ensure_terminated(command).encode("ascii", errors="ignore")
 
         try:
-            with socket.create_connection((self.host, self.tcp_port), timeout=self.timeout_seconds) as sock:
+            with socket.create_connection(
+                (self.host, self.tcp_port), timeout=self.timeout_seconds
+            ) as sock:
                 sock.settimeout(self.timeout_seconds)
                 sock.sendall(payload)
                 response = _read_all(sock)
         except OSError as exc:
-            raise DCSNetworkError(f"failed to communicate with {self.host}:{self.tcp_port}") from exc
+            raise DCSNetworkError(
+                f"failed to communicate with {self.host}:{self.tcp_port}"
+            ) from exc
 
         result = response.decode("ascii", errors="ignore").strip()
         upper = result.upper()
@@ -114,36 +130,48 @@ class DCSController:
         return self.command("DISCONNECT")
 
     @classmethod
-    def discover(
+    def easy_set(
         cls,
         *,
-        timeout_seconds: float = 0.5,
-        udp_port: int = 7777,
-        broadcast_address: str = "255.255.255.255",
-    ) -> list[DeviceInfo]:
-        """Broadcast *IDN? via UDP and collect discovered controllers."""
-        message = b"*IDN?;"
-        seen: dict[str, DeviceInfo] = {}
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        try:
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            sock.settimeout(timeout_seconds)
-            sock.bind(("", 0))
-            sock.sendto(message, (broadcast_address, udp_port))
-            while True:
-                try:
-                    payload, addr = sock.recvfrom(4096)
-                except socket.timeout:
-                    break
-                text = payload.decode("ascii", errors="ignore").strip()
-                if text:
-                    seen[addr[0]] = DeviceInfo(host=addr[0], idn=text)
-        except OSError as exc:
-            raise DCSNetworkError("failed during UDP discovery") from exc
-        finally:
-            sock.close()
+        host: str = "192.168.0.1",
+        channel: int = 1,
+        current: int,
+        timeout_seconds: float = 1.0,
+    ) -> bool:
+        # Set the channel to continuous mode and specified current
+        instance = cls(host=host, timeout_seconds=timeout_seconds)
+        instance.set_mode(channel, Mode.CONTINUOUS)
+        instance.set_level(channel, current)
 
-        return sorted(seen.values(), key=lambda item: item.host)
+        # Read back channel configs
+        xml_payload = instance.channel_configs_xml()
+
+        # Disconnect before parsing to avoid leaving the channel on if parsing fails or raises warnings
+        instance.disconnect()
+
+        # Parse configs and validate
+        configs = parse_channel_configs(xml_payload)
+        for config in configs:
+            if config.channel_id == channel:
+                if config.mode != Mode.CONTINUOUS:
+                    warnings.warn(
+                        f"Channel {channel} mode should be {Mode.CONTINUOUS}, but is {config.mode}",
+                        DCSControllerWarning,
+                    )
+                if current > config.max_cont:
+                    warnings.warn(
+                        f"Channel {channel} current {current} mA exceeds maximum continuous rating of {config.max_cont} mA",
+                        DCSSignalWarning,
+                    )
+                if config.current == current:
+                    return True
+                return False
+
+        warnings.warn(
+            f"Channel {channel} configuration not found in device response",
+            DCSControllerWarning,
+        )
+        return False
 
 
 def _read_all(sock: socket.socket) -> bytes:

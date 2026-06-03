@@ -23,12 +23,21 @@ class TriggerEdge(IntEnum):
 
 
 @dataclass(frozen=True)
-class DeviceInfo:
-    host: str
-    idn: str
-
-
-@dataclass(frozen=True)
 class ProfileName:
     profile_id: int
     name: str
+
+
+@dataclass
+class ChannelSettings:
+    channel_id: int
+    current: int
+    mode: Mode
+    trigger: int
+    pulse_width: int
+    delay: int
+    max_cont: int
+    max_strobe: int
+    min_off: int
+    min_cur: int
+    input_pin: int

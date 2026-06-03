@@ -1,14 +1,21 @@
 from .client import DCSController
-from .exceptions import DCSControllerError, DCSNetworkError, DCSProtocolError
-from .models import Channel, DeviceInfo, Mode, ProfileName, TriggerEdge
+from .exceptions import (
+    DCSControllerError,
+    DCSControllerWarning,
+    DCSNetworkError,
+    DCSProtocolError,
+    DCSSignalWarning,
+)
+from .models import Channel, Mode, ProfileName, TriggerEdge
 
 __all__ = [
     "Channel",
     "DCSController",
     "DCSControllerError",
+    "DCSControllerWarning",
     "DCSNetworkError",
     "DCSProtocolError",
-    "DeviceInfo",
+    "DCSSignalWarning",
     "Mode",
     "ProfileName",
     "TriggerEdge",
