@@ -18,6 +18,22 @@ pip install pydcscontrol
 
 ## Usage
 
+### Command line
+
+Using the `easy-set` CLI script to set the current of a DCS channel to 100 mA:
+
+```bash
+uvx pydcscontrol easy-set --current 100
+```
+
+Using the `turn-off` CLI script to turn off DCS output:
+
+```bash
+uvx pydcscontrol turn-off
+```
+
+### Python script
+
 Using continous mode to set the current of a DCS channel to 100 mA:
 
 ```python

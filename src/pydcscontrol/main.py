@@ -4,7 +4,7 @@ from pydcscontrol import DCSController
 
 
 def easy_set():
-    parser = argparse.ArgumentParser(description="Current level to set on DCS channel")
+    parser = argparse.ArgumentParser(description="Set a DCS channel to a specified current level")
     parser.add_argument(
         "host",
         type=str,
