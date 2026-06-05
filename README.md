@@ -8,17 +8,9 @@ Even though the DCS controller is super simple, it is nice to be able to pull in
 
 These common operation wrappers also do a validation of the current configurations for a sanity check.
 
-## Installation
-
-```bash
-uv add pydcscontrol
-# or
-pip install pydcscontrol
-```
-
 ## Usage
 
-### Command line
+### Command line (Using [uv](https://docs.astral.sh/uv/getting-started/installation/))
 
 Using the `easy-set` CLI script to set the current of a DCS channel to 100 mA:
 
@@ -33,6 +25,14 @@ uvx pydcscontrol turn-off
 ```
 
 ### Python script
+
+Install the package:
+
+```bash
+uv add pydcscontrol
+# or
+pip install pydcscontrol
+```
 
 Using continous mode to set the current of a DCS channel to 100 mA:
 

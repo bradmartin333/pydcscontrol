@@ -4,7 +4,9 @@ from pydcscontrol import DCSController
 
 
 def easy_set():
-    parser = argparse.ArgumentParser(description="Set a DCS channel to a specified current level")
+    parser = argparse.ArgumentParser(
+        description="Set a DCS channel to a specified current level"
+    )
     parser.add_argument(
         "host",
         type=str,
@@ -24,9 +26,9 @@ def easy_set():
     if DCSController().easy_set(
         host=args.host, current=args.current, channel=args.channel
     ):
-        print("DCS channel configured successfully")
+        print(f"DCS channel {args.channel} set to {args.current} mA successfully")
     else:
-        print("DCS channel configuration failed")
+        print(f"DCS channel {args.channel} configuration failed")
 
 
 def turn_off():
@@ -47,6 +49,6 @@ def turn_off():
     )
     args = parser.parse_args()
     if DCSController().turn_off(host=args.host, channel=args.channel):
-        print("DCS channel powered down successfully")
+        print(f"DCS channel {args.channel} powered down successfully")
     else:
-        print("DCS channel power down failed")
+        print(f"DCS channel {args.channel} power down failed")

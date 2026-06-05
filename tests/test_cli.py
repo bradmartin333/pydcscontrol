@@ -17,7 +17,7 @@ def test_easy_set_uses_positional_arguments(mock_easy_set, mock_print) -> None:
         "current": 200,
         "channel": 2,
     }
-    mock_print.assert_called_once_with("DCS channel configured successfully")
+    mock_print.assert_called_once_with("DCS channel 2 set to 200 mA successfully")
 
 
 @patch("builtins.print")
@@ -33,7 +33,7 @@ def test_easy_set_default_host_and_channel_with_current_only(
         "current": 100,
         "channel": 1,
     }
-    mock_print.assert_called_once_with("DCS channel configured successfully")
+    mock_print.assert_called_once_with("DCS channel 1 set to 100 mA successfully")
 
 
 @patch("builtins.print")
@@ -46,4 +46,4 @@ def test_turn_off_uses_positional_arguments(mock_turn_off, mock_print) -> None:
         "host": "10.0.0.5",
         "channel": 2,
     }
-    mock_print.assert_called_once_with("DCS channel powered down successfully")
+    mock_print.assert_called_once_with("DCS channel 2 powered down successfully")
