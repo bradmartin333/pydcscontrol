@@ -50,15 +50,13 @@ def test_init_defaults() -> None:
     ctrl = DCSController()
     assert ctrl.host == "192.168.0.1"
     assert ctrl.tcp_port == 777
-    assert ctrl.udp_port == 7777
     assert ctrl.timeout_seconds == 1.0
 
 
 def test_init_custom_values() -> None:
-    ctrl = DCSController("10.0.0.5", tcp_port=800, udp_port=8000, timeout_seconds=2.5)
+    ctrl = DCSController("10.0.0.5", tcp_port=800, timeout_seconds=2.5)
     assert ctrl.host == "10.0.0.5"
     assert ctrl.tcp_port == 800
-    assert ctrl.udp_port == 8000
     assert ctrl.timeout_seconds == 2.5
 
 

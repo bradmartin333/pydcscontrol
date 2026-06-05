@@ -2,7 +2,7 @@
 
 Python client library for communicating with Advanced Illumination DCS light controllers over the Ethernet interface.
 
-This package implements the controller's SCPI-like command protocol over TCP (default port 777) and supports UDP discovery (default port 7777).
+This package implements the controller's SCPI-like command protocol over TCP (default port 777).
 
 ## Installation
 

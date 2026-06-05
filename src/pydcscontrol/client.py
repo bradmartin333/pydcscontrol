@@ -27,12 +27,10 @@ class DCSController:
         host: str = "192.168.0.1",
         *,
         tcp_port: int = 777,
-        udp_port: int = 7777,
         timeout_seconds: float = 1.0,
     ) -> None:
         self.host = host
         self.tcp_port = tcp_port
-        self.udp_port = udp_port
         self.timeout_seconds = timeout_seconds
 
     def command(self, command: str) -> str:
