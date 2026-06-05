@@ -4,6 +4,10 @@ Python client library for communicating with Advanced Illumination DCS light con
 
 This package implements the controller's SCPI-like command protocol over TCP (default port 777).
 
+Even though the DCS controller is super simple, it is nice to be able to pull in a package to one-liner the most common operations.
+
+These common operation wrappers also do a validation of the current configurations for a sanity check.
+
 ## Installation
 
 ```bash
@@ -14,6 +18,8 @@ pip install pydcscontrol
 
 ## Usage
 
+Using continous mode to set the current of a DCS channel to 100 mA:
+
 ```python
 from pydcscontrol import DCSController
 
@@ -21,6 +27,17 @@ if DCSController().easy_set(current=100):
     print("DCS channel configured successfully")
 else:
     print("DCS channel configuration failed")
+```
+
+Quickly turn DCS output off:
+
+```python
+from pydcscontrol import DCSController
+
+if DCSController().off():
+    print("DCS channel turned off successfully")
+else:
+    print("Failed to turn off DCS channel")
 ```
 
 ## Development

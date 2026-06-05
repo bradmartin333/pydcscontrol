@@ -171,6 +171,42 @@ class DCSController:
         )
         return False
 
+    @classmethod
+    def off(
+        cls,
+        *,
+        host: str = "192.168.0.1",
+        channel: int = 1,
+        timeout_seconds: float = 1.0,
+    ) -> bool:
+        # Set the channel to continuous mode and specified current
+        instance = cls(host=host, timeout_seconds=timeout_seconds)
+        instance.set_mode(channel, Mode.OFF)
+
+        # Read back channel configs
+        xml_payload = instance.channel_configs_xml()
+
+        # Disconnect before parsing to avoid leaving the channel on if parsing fails or raises warnings
+        instance.disconnect()
+
+        # Parse configs and validate
+        configs = parse_channel_configs(xml_payload)
+        for config in configs:
+            if config.channel_id == channel:
+                if config.mode != Mode.OFF:
+                    warnings.warn(
+                        f"Channel {channel} mode should be {Mode.OFF}, but is {config.mode}",
+                        DCSControllerWarning,
+                    )
+                    return False
+                # Current can be non-zero in OFF mode, so we don't check it here
+                return True
+        warnings.warn(
+            f"Channel {channel} configuration not found in device response",
+            DCSControllerWarning,
+        )
+        return False
+
 
 def _read_all(sock: socket.socket) -> bytes:
     chunks: list[bytes] = []
