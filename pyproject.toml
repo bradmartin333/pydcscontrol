@@ -10,6 +10,10 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
 
+[project.scripts]
+easy-set = "pydcscontrol.main:easy_set"
+turn-off = "pydcscontrol.main:turn_off"
+
 [dependency-groups]
 dev = [
 	"pytest>=8.4.0",

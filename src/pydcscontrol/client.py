@@ -172,7 +172,7 @@ class DCSController:
         return False
 
     @classmethod
-    def off(
+    def turn_off(
         cls,
         *,
         host: str = "192.168.0.1",
