@@ -50,7 +50,7 @@ Quickly turn DCS output off:
 ```python
 from pydcscontrol import DCSController
 
-if DCSController().off():
+if DCSController().turn_off():
     print("DCS channel turned off successfully")
 else:
     print("Failed to turn off DCS channel")
