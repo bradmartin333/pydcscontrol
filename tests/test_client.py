@@ -41,6 +41,18 @@ def _channel_xml(
     ).encode()
 
 
+def _channels_xml(*channels: tuple[int, int, int, int]) -> bytes:
+    channel_xml = "".join(
+        (
+            f'<channel id="{channel_id}" current="{current}" mode="{mode}" trigger="0"'
+            f' pulseWidth="0" delay="0" maxCont="{max_cont}" maxStrobe="1000"'
+            f' minOff="0" minCur="0" input="0"/>'
+        )
+        for channel_id, current, mode, max_cont in channels
+    )
+    return f"<channels>{channel_xml}</channels>".encode()
+
+
 # ---------------------------------------------------------------------------
 # DCSController.__init__
 # ---------------------------------------------------------------------------
@@ -179,7 +191,7 @@ def test_easy_set_returns_true_when_current_matches() -> None:
     responses = [b"OK", b"OK", _channel_xml(current=100), b"OK"]
     mock_ctxs = [_mock_conn(r) for r in responses]
     with patch("pydcscontrol.client.socket.create_connection", side_effect=mock_ctxs):
-        result = DCSController.easy_set(host="10.0.0.1", current=100)
+        result = DCSController.easy_set(host="10.0.0.1", channels=[1], current=100)
     assert result is True
 
 
@@ -188,7 +200,7 @@ def test_easy_set_returns_false_when_current_does_not_match() -> None:
     responses = [b"OK", b"OK", _channel_xml(current=50), b"OK"]
     mock_ctxs = [_mock_conn(r) for r in responses]
     with patch("pydcscontrol.client.socket.create_connection", side_effect=mock_ctxs):
-        result = DCSController.easy_set(host="10.0.0.1", current=100)
+        result = DCSController.easy_set(host="10.0.0.1", channels=[1], current=100)
     assert result is False
 
 
@@ -198,7 +210,7 @@ def test_easy_set_warns_when_current_exceeds_max_cont() -> None:
     mock_ctxs = [_mock_conn(r) for r in responses]
     with patch("pydcscontrol.client.socket.create_connection", side_effect=mock_ctxs):
         with pytest.warns(DCSSignalWarning, match="exceeds maximum"):
-            result = DCSController.easy_set(host="10.0.0.1", current=600)
+            result = DCSController.easy_set(host="10.0.0.1", channels=[1], current=600)
     assert result is True
 
 
@@ -208,7 +220,7 @@ def test_easy_set_warns_when_mode_readback_differs() -> None:
     mock_ctxs = [_mock_conn(r) for r in responses]
     with patch("pydcscontrol.client.socket.create_connection", side_effect=mock_ctxs):
         with pytest.warns(DCSControllerWarning, match="mode"):
-            result = DCSController.easy_set(host="10.0.0.1", current=100)
+            result = DCSController.easy_set(host="10.0.0.1", channels=[1], current=100)
     assert result is True
 
 
@@ -219,23 +231,22 @@ def test_easy_set_warns_when_channel_not_in_response() -> None:
     mock_ctxs = [_mock_conn(r) for r in responses]
     with patch("pydcscontrol.client.socket.create_connection", side_effect=mock_ctxs):
         with pytest.warns(DCSControllerWarning, match="not found"):
-            result = DCSController.easy_set(host="10.0.0.1", current=100)
+            result = DCSController.easy_set(host="10.0.0.1", channels=[1], current=100)
     assert result is False
 
 
-def test_easy_set_uses_specified_channel() -> None:
-    xml = (
-        b"<channels>"
-        b'<channel id="1" current="0" mode="0" trigger="0" pulseWidth="0" delay="0"'
-        b' maxCont="500" maxStrobe="1000" minOff="0" minCur="0" input="0"/>'
-        b'<channel id="2" current="200" mode="1" trigger="0" pulseWidth="0" delay="0"'
-        b' maxCont="500" maxStrobe="1000" minOff="0" minCur="0" input="0"/>'
-        b"</channels>"
-    )
-    responses = [b"OK", b"OK", xml, b"OK"]
+def test_easy_set_validates_all_requested_channels() -> None:
+    responses = [
+        b"OK",
+        b"OK",
+        b"OK",
+        b"OK",
+        _channels_xml((1, 200, 1, 500), (2, 200, 1, 500)),
+        b"OK",
+    ]
     mock_ctxs = [_mock_conn(r) for r in responses]
     with patch("pydcscontrol.client.socket.create_connection", side_effect=mock_ctxs):
-        result = DCSController.easy_set(host="10.0.0.1", channel=2, current=200)
+        result = DCSController.easy_set(host="10.0.0.1", channels=[1, 2], current=200)
     assert result is True
 
 
@@ -245,4 +256,45 @@ def test_easy_set_propagates_network_error() -> None:
         side_effect=OSError("unreachable"),
     ):
         with pytest.raises(DCSNetworkError):
-            DCSController.easy_set(host="10.0.0.1", current=100)
+            DCSController.easy_set(host="10.0.0.1", channels=[1], current=100)
+
+
+# ---------------------------------------------------------------------------
+# DCSController.turn_off
+# ---------------------------------------------------------------------------
+
+
+def test_turn_off_returns_true_when_all_channels_are_off() -> None:
+    responses = [
+        b"OK",
+        b"OK",
+        _channels_xml((1, 0, 0, 500), (2, 25, 0, 500)),
+        b"OK",
+    ]
+    mock_ctxs = [_mock_conn(r) for r in responses]
+    with patch("pydcscontrol.client.socket.create_connection", side_effect=mock_ctxs):
+        result = DCSController.turn_off(host="10.0.0.1", channels=[1, 2])
+    assert result is True
+
+
+def test_turn_off_returns_false_when_any_channel_is_not_off() -> None:
+    responses = [
+        b"OK",
+        b"OK",
+        _channels_xml((1, 0, 0, 500), (2, 25, 1, 500)),
+        b"OK",
+    ]
+    mock_ctxs = [_mock_conn(r) for r in responses]
+    with patch("pydcscontrol.client.socket.create_connection", side_effect=mock_ctxs):
+        with pytest.warns(DCSControllerWarning, match="mode"):
+            result = DCSController.turn_off(host="10.0.0.1", channels=[1, 2])
+    assert result is False
+
+
+def test_turn_off_warns_when_channel_not_in_response() -> None:
+    responses = [b"OK", b"OK", _channel_xml(channel_id=1, mode=0), b"OK"]
+    mock_ctxs = [_mock_conn(r) for r in responses]
+    with patch("pydcscontrol.client.socket.create_connection", side_effect=mock_ctxs):
+        with pytest.warns(DCSControllerWarning, match="not found"):
+            result = DCSController.turn_off(host="10.0.0.1", channels=[1, 2])
+    assert result is False

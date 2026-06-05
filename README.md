@@ -12,17 +12,19 @@ These common operation wrappers also do a validation of the current configuratio
 
 ### Command line (Using [uv](https://docs.astral.sh/uv/getting-started/installation/))
 
-Using the `easy-set` CLI script to set the current of a DCS channel to 100 mA:
+Using the `easy-set` CLI script to set the current of one or more DCS channels to 100 mA:
 
 ```bash
-uvx pydcscontrol easy-set --current 100
+uvx --from pydcscontrol easy-set 100 --channels 1 2
 ```
 
-Using the `turn-off` CLI script to turn off DCS output:
+Using the `turn-off` CLI script to turn off one or more DCS channels:
 
 ```bash
-uvx pydcscontrol turn-off
+uvx --from pydcscontrol turn-off
 ```
+
+Both commands default to channels 1 and 2 when `--channels` is omitted.
 
 ### Python script
 
@@ -34,15 +36,15 @@ uv add pydcscontrol
 pip install pydcscontrol
 ```
 
-Using continous mode to set the current of a DCS channel to 100 mA:
+Using continuous mode to set the current of one or more DCS channels to 100 mA:
 
 ```python
 from pydcscontrol import DCSController
 
-if DCSController().easy_set(current=100):
-    print("DCS channel configured successfully")
+if DCSController().easy_set(channels=[1, 2], current=100):
+    print("DCS channels configured successfully")
 else:
-    print("DCS channel configuration failed")
+    print("DCS channels configuration failed")
 ```
 
 Quickly turn DCS output off:
@@ -50,10 +52,10 @@ Quickly turn DCS output off:
 ```python
 from pydcscontrol import DCSController
 
-if DCSController().turn_off():
-    print("DCS channel turned off successfully")
+if DCSController().turn_off(channels=[1, 2]):
+    print("DCS channels turned off successfully")
 else:
-    print("Failed to turn off DCS channel")
+    print("Failed to turn off DCS channels")
 ```
 
 ## Development

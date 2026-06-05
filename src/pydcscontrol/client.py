@@ -132,14 +132,16 @@ class DCSController:
         cls,
         *,
         host: str = "192.168.0.1",
-        channel: int = 1,
+        channels: list[int],
         current: int,
         timeout_seconds: float = 1.0,
     ) -> bool:
         # Set the channel to continuous mode and specified current
         instance = cls(host=host, timeout_seconds=timeout_seconds)
-        instance.set_mode(channel, Mode.CONTINUOUS)
-        instance.set_level(channel, current)
+
+        for channel in channels:
+            instance.set_mode(channel, Mode.CONTINUOUS)
+            instance.set_level(channel, current)
 
         # Read back channel configs
         xml_payload = instance.channel_configs_xml()
@@ -149,39 +151,48 @@ class DCSController:
 
         # Parse configs and validate
         configs = parse_channel_configs(xml_payload)
-        for config in configs:
-            if config.channel_id == channel:
-                if config.mode != Mode.CONTINUOUS:
-                    warnings.warn(
-                        f"Channel {channel} mode should be {Mode.CONTINUOUS}, but is {config.mode}",
-                        DCSControllerWarning,
-                    )
-                if current > config.max_cont:
-                    warnings.warn(
-                        f"Channel {channel} current {current} mA exceeds maximum continuous rating of {config.max_cont} mA",
-                        DCSSignalWarning,
-                    )
-                if config.current == current:
-                    return True
-                return False
+        configs_by_channel = {config.channel_id: config for config in configs}
+        all_channels_valid = True
 
-        warnings.warn(
-            f"Channel {channel} configuration not found in device response",
-            DCSControllerWarning,
-        )
-        return False
+        for channel in channels:
+            config = configs_by_channel.get(channel)
+            if config is None:
+                warnings.warn(
+                    f"Channel {channel} configuration not found in device response",
+                    DCSControllerWarning,
+                )
+                all_channels_valid = False
+                continue
+
+            if config.mode != Mode.CONTINUOUS:
+                warnings.warn(
+                    f"Channel {channel} mode should be {Mode.CONTINUOUS}, but is {config.mode}",
+                    DCSControllerWarning,
+                )
+
+            if current > config.max_cont:
+                warnings.warn(
+                    f"Channel {channel} current {current} mA exceeds maximum continuous rating of {config.max_cont} mA",
+                    DCSSignalWarning,
+                )
+
+            if config.current != current:
+                all_channels_valid = False
+
+        return all_channels_valid
 
     @classmethod
     def turn_off(
         cls,
         *,
         host: str = "192.168.0.1",
-        channel: int = 1,
+        channels: list[int],
         timeout_seconds: float = 1.0,
     ) -> bool:
         # Set the channel to continuous mode and specified current
         instance = cls(host=host, timeout_seconds=timeout_seconds)
-        instance.set_mode(channel, Mode.OFF)
+        for channel in channels:
+            instance.set_mode(channel, Mode.OFF)
 
         # Read back channel configs
         xml_payload = instance.channel_configs_xml()
@@ -191,21 +202,27 @@ class DCSController:
 
         # Parse configs and validate
         configs = parse_channel_configs(xml_payload)
-        for config in configs:
-            if config.channel_id == channel:
-                if config.mode != Mode.OFF:
-                    warnings.warn(
-                        f"Channel {channel} mode should be {Mode.OFF}, but is {config.mode}",
-                        DCSControllerWarning,
-                    )
-                    return False
-                # Current can be non-zero in OFF mode, so we don't check it here
-                return True
-        warnings.warn(
-            f"Channel {channel} configuration not found in device response",
-            DCSControllerWarning,
-        )
-        return False
+        configs_by_channel = {config.channel_id: config for config in configs}
+        all_channels_valid = True
+
+        for channel in channels:
+            config = configs_by_channel.get(channel)
+            if config is None:
+                warnings.warn(
+                    f"Channel {channel} configuration not found in device response",
+                    DCSControllerWarning,
+                )
+                all_channels_valid = False
+                continue
+
+            if config.mode != Mode.OFF:
+                warnings.warn(
+                    f"Channel {channel} mode should be {Mode.OFF}, but is {config.mode}",
+                    DCSControllerWarning,
+                )
+                all_channels_valid = False
+
+        return all_channels_valid
 
 
 def _read_all(sock: socket.socket) -> bytes:
