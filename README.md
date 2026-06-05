@@ -15,7 +15,7 @@ These common operation wrappers also do a validation of the current configuratio
 Using the `easy-set` CLI script to set the current of one or more DCS channels to 100 mA:
 
 ```bash
-uvx --from pydcscontrol easy-set 100 --channels 1 2
+uvx --from pydcscontrol easy-set 100
 ```
 
 Using the `turn-off` CLI script to turn off one or more DCS channels:
